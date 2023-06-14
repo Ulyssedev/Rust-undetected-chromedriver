@@ -1,7 +1,6 @@
 # Rust undetected chromedriver
 
 A rust implementation of ultrafunkamsterdam's [undetected-chromedriver](https://github.com/ultrafunkamsterdam/undetected-chromedriver) library based on [thirtyfour](https://github.com/stevepryde/thirtyfour)
-
 ## Installation
 
 To use this library, you will need to have Rust and Cargo installed on your system. You can then add the following line to your `Cargo.toml` file:
@@ -10,7 +9,7 @@ To use this library, you will need to have Rust and Cargo installed on your syst
 [dependencies]
 undetected-chromedriver = "0.1.0"
 ```
-*A propoer crates.io and docker release will be made available soon*
+*A proper crates.io and docker release will be made available soon*
 
 ## Usage
 
