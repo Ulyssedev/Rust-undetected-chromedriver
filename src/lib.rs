@@ -1,8 +1,8 @@
 use rand::Rng;
-use thirtyfour::{WebDriver, DesiredCapabilities};
-use std::{process::Command};
 #[cfg(target_os = "linux")]
 use std::os::unix::fs::PermissionsExt;
+use std::process::Command;
+use thirtyfour::{DesiredCapabilities, WebDriver};
 
 /// Fetches a new ChromeDriver executable and patches it to prevent detection.
 /// Returns a WebDriver instance.
@@ -24,7 +24,11 @@ pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
     match !std::path::Path::new(chromedriver_executable).exists() {
         true => {
             println!("Starting ChromeDriver executable patch...");
-            let file_name = if cfg!(windows) { "chromedriver.exe" } else { "chromedriver" };
+            let file_name = if cfg!(windows) {
+                "chromedriver.exe"
+            } else {
+                "chromedriver"
+            };
             let f = std::fs::read(file_name).unwrap();
             let mut new_chromedriver_bytes = f.clone();
             let mut total_cdc = String::from("");
@@ -55,7 +59,7 @@ pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
                 false => println!("No cdcs were found!"),
             }
             let get_random_char = || -> char {
-                "abefghijklmnopqrstuvwxyzABEFGHIJKLMNOPQRSTUVWXYZ"
+                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
                     .chars()
                     .collect::<Vec<char>>()[rand::thread_rng().gen_range(0..48)]
             };
@@ -70,9 +74,9 @@ pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
             println!("Starting to write to binary file...");
             let _file = std::fs::File::create(chromedriver_executable).unwrap();
             match std::fs::write(chromedriver_executable, new_chromedriver_bytes) {
-                Ok(_res) => println!(
-                    "Successfully wrote patched executable to 'chromedriver_PATCHED'!",
-                ),
+                Ok(_res) => {
+                    println!("Successfully wrote patched executable to 'chromedriver_PATCHED'!",)
+                }
                 Err(err) => println!("Error when writing patch to file! Error: {}", err),
             };
         }
@@ -94,10 +98,9 @@ pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
         .arg(format!("--port={}", port))
         .spawn()
         .expect("Failed to start chromedriver!");
-
-
     let mut caps = DesiredCapabilities::chrome();
-    caps.add_chrome_arg("--no-sandbox").unwrap();
+    caps.set_no_sandbox().unwrap();
+    caps.set_disable_dev_shm_usage().unwrap();
     caps.add_chrome_arg("--disable-blink-features=AutomationControlled")
         .unwrap();
     caps.add_chrome_arg("window-size=1920,1080").unwrap();
@@ -105,9 +108,16 @@ pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
     caps.add_chrome_arg("disable-infobars").unwrap();
     caps.add_chrome_option("excludeSwitches", ["enable-automation"])
         .unwrap();
-    let driver = WebDriver::new(&format!("http://localhost:{}", port), caps)
-        .await
-        .unwrap();
+    let mut driver = None;
+    let mut attempt = 0;
+    while driver.is_none() && attempt < 20 {
+        attempt += 1;
+        match WebDriver::new(&format!("http://localhost:{}", port), caps.clone()).await {
+            Ok(d) => driver = Some(d),
+            Err(_) => std::thread::sleep(std::time::Duration::from_millis(250)),
+        }
+    }
+    let driver = driver.unwrap();
     Ok(driver)
 }
 
@@ -133,10 +143,7 @@ async fn fetch_chromedriver(client: &reqwest::Client) -> Result<(), Box<dyn std:
         ),
         _ => panic!("Unsupported OS!"),
     };
-    let resp = client
-        .get(url)
-        .send()
-        .await?;
+    let resp = client.get(url).send().await?;
     let body = resp.bytes().await?;
 
     let mut archive = zip::ZipArchive::new(std::io::Cursor::new(body))?;

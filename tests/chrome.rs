@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use undetected_chromedriver::chrome;
     use tokio;
+    use undetected_chromedriver::chrome;
 
     #[tokio::test]
     async fn test_chrome() {

@@ -1,6 +1,10 @@
-# Rust undetected chromedriver
+<h1 align="center">
+  <img alt="rust undetected chrome driver logo" src=".github/images/logo.png" width="160px"/><br/>
+  Rust undetected chromedriver
+</h1>
 
 A rust implementation of ultrafunkamsterdam's [undetected-chromedriver](https://github.com/ultrafunkamsterdam/undetected-chromedriver) library based on [thirtyfour](https://github.com/stevepryde/thirtyfour)
+
 ## Installation
 
 To use this library, you will need to have Rust and Cargo installed on your system. You can then add the following line to your `Cargo.toml` file:
@@ -9,7 +13,6 @@ To use this library, you will need to have Rust and Cargo installed on your syst
 [dependencies]
 undetected-chromedriver = "0.1.0"
 ```
-*A proper crates.io and docker release will be made available soon*
 
 ## Usage
 
@@ -34,3 +37,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 *Note: chrome needs to be installed on the system before using undetected chromedriver*
+
+### Headless mode
+
+You can run the chromedriver in headless mode by using the `xvfb-run` feature. This will require you to have `xvfb` installed on your system.
+
+### Docker
+
+A docker image is provided with chrome and xvfb installed. You can use it as follows:
+
+```Dockerfile
+FROM rust:latest as builder
+COPY ./src ./src
+COPY ./Cargo.toml ./Cargo.toml
+COPY ./Cargo.lock ./Cargo.lock
+RUN cargo build --release
+
+FROM ghcr.io/ulyssedev/rust-undetected-chromedriver:latest
+COPY --from=builder /target/release/binary /home/apps/binary
+CMD ["/home/apps/binary"]
+```
