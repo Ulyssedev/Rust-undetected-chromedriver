@@ -28,3 +28,32 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: chmod +x xvfb.sh && ./xvfb.sh cargo test --verbose
+
+  windows-build-and-test:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Install Google Chrome
+      uses: crazy-max/ghaction-chocolatey@v2
+      with:
+        args: install googlechrome -y
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
+
+  macos-build-and-test:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Install Google Chrome
+      run: |
+        brew install --cask google-chrome
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: chmod +x xvfb.sh && ./xvfb.sh cargo test --verbose
