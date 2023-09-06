@@ -38,7 +38,7 @@ jobs:
     - name: Install Google Chrome
       uses: crazy-max/ghaction-chocolatey@v2
       with:
-        args: install googlechrome -y
+        args: install googlechrome -y --ignore-checksums
     - name: Build
       run: cargo build --verbose
     - name: Run tests
@@ -52,7 +52,7 @@ jobs:
       uses: actions/checkout@v3
     - name: Install Google Chrome
       run: |
-        brew install --cask google-chrome
+        brew install --cask google-chrome XQuartz pidof
     - name: Build
       run: cargo build --verbose
     - name: Run tests
