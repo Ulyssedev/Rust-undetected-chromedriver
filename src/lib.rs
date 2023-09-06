@@ -123,27 +123,62 @@ pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
 
 async fn fetch_chromedriver(client: &reqwest::Client) -> Result<(), Box<dyn std::error::Error>> {
     let os = std::env::consts::OS;
-    let resp = client
-        .get("https://chromedriver.storage.googleapis.com/LATEST_RELEASE")
-        .send()
-        .await?;
-    let body = resp.text().await?;
-    let url = match os {
-        "linux" => format!(
-            "https://chromedriver.storage.googleapis.com/{}/chromedriver_linux64.zip",
-            body
-        ),
-        "windows" => format!(
-            "https://chromedriver.storage.googleapis.com/{}/chromedriver_win32.zip",
-            body
-        ),
-        "macos" => format!(
-            "https://chromedriver.storage.googleapis.com/{}/chromedriver_mac64.zip",
-            body
-        ),
-        _ => panic!("Unsupported OS!"),
-    };
-    let resp = client.get(url).send().await?;
+
+    let installed_version = get_chrome_version(os).await?;
+    let chromedriver_url: String;
+    if installed_version >= "114".to_string() {
+        // Fetch the correct version
+        let url = "https://googlechromelabs.github.io/chrome-for-testing/latest-versions-per-milestone.json";
+        let resp = client.get(url).send().await?;
+        let body = resp.bytes().await?;
+        let json = serde_json::from_slice::<serde_json::Value>(&body)?;
+        let version = json["milestones"][installed_version]["version"]
+            .as_str()
+            .unwrap();
+
+        // Fetch the chromedriver binary
+        chromedriver_url = match os {
+            "linux" => format!(
+                "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/{}/{}/{}",
+                version, "linux64", "chromedriver-linux64.zip"
+            ),
+            "macos" => format!(
+                "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/{}/{}/{}",
+                version, "mac-x64", "chromedriver-mac-x64.zip"
+            ),
+            "windows" => format!(
+                "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/{}/{}/{}",
+                version, "win64", "chromedriver-win64.zip"
+            ),
+            _ => panic!("Unsupported OS!"),
+        };
+    } else {
+        let resp = client
+            .get(format!(
+                "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_{}",
+                installed_version
+            ))
+            .send()
+            .await?;
+        let body = resp.text().await?;
+        chromedriver_url = match os {
+            "linux" => format!(
+                "https://chromedriver.storage.googleapis.com/{}/chromedriver_linux64.zip",
+                body
+            ),
+            "windows" => format!(
+                "https://chromedriver.storage.googleapis.com/{}/chromedriver_win32.zip",
+                body
+            ),
+            "macos" => format!(
+                "https://chromedriver.storage.googleapis.com/{}/chromedriver_mac64.zip",
+                body
+            ),
+            _ => panic!("Unsupported OS!"),
+        };
+    }
+
+    let resp = client.get(&chromedriver_url).send().await?;
     let body = resp.bytes().await?;
 
     let mut archive = zip::ZipArchive::new(std::io::Cursor::new(body))?;
@@ -153,14 +188,25 @@ async fn fetch_chromedriver(client: &reqwest::Client) -> Result<(), Box<dyn std:
         if (&*file.name()).ends_with('/') {
             std::fs::create_dir_all(&outpath)?;
         } else {
-            if let Some(p) = outpath.parent() {
-                if !p.exists() {
-                    std::fs::create_dir_all(&p)?;
-                }
-            }
-            let mut outfile = std::fs::File::create(&outpath)?;
+            let outpath_relative = outpath.file_name().unwrap();
+            let mut outfile = std::fs::File::create(outpath_relative)?;
             std::io::copy(&mut file, &mut outfile)?;
         }
     }
     Ok(())
+}
+
+async fn get_chrome_version(os: &str) -> Result<String, Box<dyn std::error::Error>> {
+    println!("Getting installed Chrome version...");
+    let path = match os {
+        "linux" => "/usr/bin/google-chrome",
+        "macos" => "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "windows" => "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+        _ => panic!("Unsupported OS!"),
+    };
+    let command = Command::new(path).arg("--version").output()?;
+    let output = String::from_utf8(command.stdout)?;
+    let version = output.replace("Google Chrome ", "")[0..3].to_string();
+    println!("Currently installed Chrome version: {}", version);
+    Ok(version)
 }

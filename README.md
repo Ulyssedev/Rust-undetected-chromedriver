@@ -11,7 +11,7 @@ To use this library, you will need to have Rust and Cargo installed on your syst
 
 ```toml
 [dependencies]
-undetected-chromedriver = "0.1.0"
+undetected-chromedriver = "0.1.1"
 ```
 
 ## Usage
@@ -40,7 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Headless mode
 
-You can run the chromedriver in headless mode by using the `xvfb-run` feature. This will require you to have `xvfb` installed on your system.
+You can run the chromedriver in headless mode by using `xvfb-run`. This will require you to have `xvfb` installed on your system.
 
 ### Docker
 

@@ -1,6 +1,6 @@
 [package]
 name = "undetected-chromedriver"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "An undetected implementation of thirtyfour."
 repository = "https://github.com/Ulyssedev/Rust-undetected-chromedriver"
@@ -10,6 +10,7 @@ readme = "README.md"
 [dependencies]
 rand = "0.8.5"
 reqwest = "0.11.18"
+serde_json = "1.0.105"
 thirtyfour = "0.31.0"
 tokio = "1.28.2"
 zip = "0.6.6"

@@ -1,4 +1,4 @@
-name: Rust
+name: Rust tests
 
 on:
   push:
@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-and-test:
+  linux-build-and-test:
     runs-on: ubuntu-latest
 
     steps:
