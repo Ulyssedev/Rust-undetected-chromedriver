@@ -1,5 +1,5 @@
 use rand::Rng;
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::os::unix::fs::PermissionsExt;
 use std::process::Command;
 use thirtyfour::{DesiredCapabilities, WebDriver};
@@ -84,7 +84,7 @@ pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
             println!("Detected patched chromedriver executable!");
         }
     }
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
         let mut perms = std::fs::metadata(chromedriver_executable)
             .unwrap()
