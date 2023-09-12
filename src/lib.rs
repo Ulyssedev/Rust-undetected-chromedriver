@@ -126,7 +126,7 @@ async fn fetch_chromedriver(client: &reqwest::Client) -> Result<(), Box<dyn std:
 
     let installed_version = get_chrome_version(os).await?;
     let chromedriver_url: String;
-    if installed_version >= "114".to_string() {
+    if installed_version.as_str() >= "114" {
         // Fetch the correct version
         let url = "https://googlechromelabs.github.io/chrome-for-testing/latest-versions-per-milestone.json";
         let resp = client.get(url).send().await?;
@@ -185,7 +185,7 @@ async fn fetch_chromedriver(client: &reqwest::Client) -> Result<(), Box<dyn std:
     for i in 0..archive.len() {
         let mut file = archive.by_index(i)?;
         let outpath = file.mangled_name();
-        if (&*file.name()).ends_with('/') {
+        if file.name().ends_with('/') {
             std::fs::create_dir_all(&outpath)?;
         } else {
             let outpath_relative = outpath.file_name().unwrap();

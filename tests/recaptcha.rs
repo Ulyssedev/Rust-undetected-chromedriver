@@ -2,7 +2,6 @@
 mod tests {
     use thirtyfour::prelude::{ElementQueryable, ElementWaitable};
     use thirtyfour::By;
-    use tokio;
     use undetected_chromedriver::chrome;
 
     async fn get_score(driver: &thirtyfour::WebDriver) -> Option<f32> {
@@ -29,8 +28,8 @@ mod tests {
             .lines()
             .find(|line| line.contains("\"score\":"))
             .and_then(|line| {
-                let start_index = line.find(":")?;
-                let end_index = line.find(",")?;
+                let start_index = line.find(':')?;
+                let end_index = line.find(',')?;
                 line.get(start_index + 1..end_index)
             })
             .and_then(|score_str| score_str.trim().parse::<f32>().ok());
