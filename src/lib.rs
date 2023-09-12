@@ -37,7 +37,7 @@ pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
             let mut cdc_pos_list = Vec::new();
             let mut is_cdc_present = false;
             let mut patch_ct = 0;
-            for i in 0..f.len() - 3 {
+            for i in 0..f.len() {
                 if "cdc_"
                     == format!(
                         "{}{}{}{}",
@@ -48,7 +48,7 @@ pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
                     )
                     .as_str()
                 {
-                    for x in i..i + 22 {
+                    for x in i + 4..i + 22 {
                         total_cdc.push_str(&(f[x] as char).to_string());
                     }
                     is_cdc_present = true;
@@ -65,8 +65,9 @@ pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
                     .chars()
                     .collect::<Vec<char>>()[rand::thread_rng().gen_range(0..48)]
             };
+            
             for i in cdc_pos_list {
-                for x in i..i + 22 {
+                for x in i + 4..i + 22 {
                     new_chromedriver_bytes[x] = get_random_char() as u8;
                 }
                 patch_ct += 1;
@@ -214,18 +215,15 @@ async fn get_chrome_version(os: &str) -> Result<String, Box<dyn std::error::Erro
 }
 fn patch_file() {
     let mut f = File::open("chromedriver.exe").expect("Unable to open chromedriver");
-    let mut buffer = vec![];
-    f.read_to_end(&mut buffer)
+    let mut buffer = String::new();
+    f.read_to_string(&mut buffer)
         .expect("Unable to copy chromedriver contents in the new file");
-
-
-    
 }
-mod test {
-    use crate::patch_file;
+// mod test {
+//     use crate::patch_file;
 
-    #[test]
-    fn test_patch() {
-        patch_file();
-    }
-}
+//     #[test]
+//     fn test_patch() {
+//         patch_file();
+//     }
+// }
