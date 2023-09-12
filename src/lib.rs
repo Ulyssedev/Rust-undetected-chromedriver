@@ -1,7 +1,7 @@
 use rand::Rng;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::os::unix::fs::PermissionsExt;
-use std::{fs::File, io::Read, process::Command};
+use std::process::Command;
 use thirtyfour::{DesiredCapabilities, WebDriver};
 
 /// Fetches a new ChromeDriver executable and patches it to prevent detection.
@@ -65,7 +65,7 @@ pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
                     .chars()
                     .collect::<Vec<char>>()[rand::thread_rng().gen_range(0..48)]
             };
-            
+
             for i in cdc_pos_list {
                 for x in i + 4..i + 22 {
                     new_chromedriver_bytes[x] = get_random_char() as u8;
@@ -213,17 +213,3 @@ async fn get_chrome_version(os: &str) -> Result<String, Box<dyn std::error::Erro
     println!("Currently installed Chrome version: {}", version);
     Ok(version)
 }
-fn patch_file() {
-    let mut f = File::open("chromedriver.exe").expect("Unable to open chromedriver");
-    let mut buffer = String::new();
-    f.read_to_string(&mut buffer)
-        .expect("Unable to copy chromedriver contents in the new file");
-}
-// mod test {
-//     use crate::patch_file;
-
-//     #[test]
-//     fn test_patch() {
-//         patch_file();
-//     }
-// }
