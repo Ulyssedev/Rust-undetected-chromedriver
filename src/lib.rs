@@ -1,14 +1,16 @@
 use rand::Rng;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::os::unix::fs::PermissionsExt;
-use std::process::Command;
+use std::{fs::File, io::Read, process::Command};
 use thirtyfour::{DesiredCapabilities, WebDriver};
 
 /// Fetches a new ChromeDriver executable and patches it to prevent detection.
 /// Returns a WebDriver instance.
 pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
     let os = std::env::consts::OS;
-    if std::path::Path::new("chromedriver").exists() {
+    if std::path::Path::new("chromedriver").exists()
+        || std::path::Path::new("chromedriver.exe").exists()
+    {
         println!("ChromeDriver already exists!");
     } else {
         println!("ChromeDriver does not exist! Fetching...");
@@ -209,4 +211,21 @@ async fn get_chrome_version(os: &str) -> Result<String, Box<dyn std::error::Erro
     let version = output.replace("Google Chrome ", "")[0..3].to_string();
     println!("Currently installed Chrome version: {}", version);
     Ok(version)
+}
+fn patch_file() {
+    let mut f = File::open("chromedriver.exe").expect("Unable to open chromedriver");
+    let mut buffer = vec![];
+    f.read_to_end(&mut buffer)
+        .expect("Unable to copy chromedriver contents in the new file");
+
+
+    
+}
+mod test {
+    use crate::patch_file;
+
+    #[test]
+    fn test_patch() {
+        patch_file();
+    }
 }
