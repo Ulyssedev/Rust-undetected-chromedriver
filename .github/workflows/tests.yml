@@ -42,3 +42,20 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+
+  windows-build-and-test:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Install Google Chrome
+      uses: crazy-max/ghaction-chocolatey@v2
+      with:
+        args: install googlechrome -y --ignore-checksums
+    - name: Setup headless display
+      uses: pyvista/setup-headless-display-action@v1
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
