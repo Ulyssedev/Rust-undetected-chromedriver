@@ -11,7 +11,7 @@ To use this library, you will need to have Rust and Cargo installed on your syst
 
 ```toml
 [dependencies]
-undetected-chromedriver = "0.1.1"
+undetected-chromedriver = "0.1.2"
 ```
 
 ## Usage
