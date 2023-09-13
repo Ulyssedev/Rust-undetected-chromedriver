@@ -201,15 +201,27 @@ async fn fetch_chromedriver(client: &reqwest::Client) -> Result<(), Box<dyn std:
 
 async fn get_chrome_version(os: &str) -> Result<String, Box<dyn std::error::Error>> {
     println!("Getting installed Chrome version...");
-    let path = match os {
-        "linux" => "/usr/bin/google-chrome",
-        "macos" => "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-        "windows" => "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+    let command = match os {
+        "linux" => Command::new("/usr/bin/google-chrome")
+            .arg("--version")
+            .output()?,
+        "macos" => Command::new("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+            .arg("--version")
+            .output()?,
+        "windows" => Command::new("powershell")
+            .arg("-c")
+            .arg("(Get-Item 'C:/Program Files/Google/Chrome/Application/chrome.exe').VersionInfo")
+            .output()?,
         _ => panic!("Unsupported OS!"),
     };
-    let command = Command::new(path).arg("--version").output()?;
     let output = String::from_utf8(command.stdout)?;
-    let version = output.replace("Google Chrome ", "")[0..3].to_string();
+    
+    let version = output
+    .lines()
+    .flat_map(|line| line.chars().filter(|&ch| ch.is_ascii_digit()))
+    .take(3)
+    .collect::<String>();
+
     println!("Currently installed Chrome version: {}", version);
     Ok(version)
 }
