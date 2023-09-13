@@ -37,7 +37,7 @@ pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
             let mut cdc_pos_list = Vec::new();
             let mut is_cdc_present = false;
             let mut patch_ct = 0;
-            for i in 0..f.len() {
+            for i in 0..f.len() - 3 {
                 if "cdc_"
                     == format!(
                         "{}{}{}{}",
