@@ -2,7 +2,6 @@
 mod tests {
     use thirtyfour::prelude::ElementQueryable;
     use thirtyfour::By;
-    use tokio;
     use undetected_chromedriver::chrome;
 
     #[tokio::test]

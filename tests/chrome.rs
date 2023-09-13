@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-    use tokio;
     use undetected_chromedriver::chrome;
 
     #[tokio::test]

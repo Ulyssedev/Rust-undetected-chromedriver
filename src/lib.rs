@@ -8,7 +8,9 @@ use thirtyfour::{DesiredCapabilities, WebDriver};
 /// Returns a WebDriver instance.
 pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
     let os = std::env::consts::OS;
-    if std::path::Path::new("chromedriver").exists() {
+    if std::path::Path::new("chromedriver").exists()
+        || std::path::Path::new("chromedriver.exe").exists()
+    {
         println!("ChromeDriver already exists!");
     } else {
         println!("ChromeDriver does not exist! Fetching...");
@@ -46,7 +48,7 @@ pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
                     )
                     .as_str()
                 {
-                    for x in i..i + 22 {
+                    for x in i + 4..i + 22 {
                         total_cdc.push_str(&(f[x] as char).to_string());
                     }
                     is_cdc_present = true;
@@ -63,8 +65,9 @@ pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
                     .chars()
                     .collect::<Vec<char>>()[rand::thread_rng().gen_range(0..48)]
             };
+
             for i in cdc_pos_list {
-                for x in i..i + 22 {
+                for x in i + 4..i + 22 {
                     new_chromedriver_bytes[x] = get_random_char() as u8;
                 }
                 patch_ct += 1;
@@ -126,7 +129,7 @@ async fn fetch_chromedriver(client: &reqwest::Client) -> Result<(), Box<dyn std:
 
     let installed_version = get_chrome_version(os).await?;
     let chromedriver_url: String;
-    if installed_version >= "114".to_string() {
+    if installed_version.as_str() >= "114" {
         // Fetch the correct version
         let url = "https://googlechromelabs.github.io/chrome-for-testing/latest-versions-per-milestone.json";
         let resp = client.get(url).send().await?;
@@ -185,7 +188,7 @@ async fn fetch_chromedriver(client: &reqwest::Client) -> Result<(), Box<dyn std:
     for i in 0..archive.len() {
         let mut file = archive.by_index(i)?;
         let outpath = file.mangled_name();
-        if (&*file.name()).ends_with('/') {
+        if file.name().ends_with('/') {
             std::fs::create_dir_all(&outpath)?;
         } else {
             let outpath_relative = outpath.file_name().unwrap();
