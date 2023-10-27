@@ -1,18 +1,24 @@
 #[cfg(test)]
 mod tests {
-    use thirtyfour::prelude::ElementQueryable;
-    use thirtyfour::By;
-    use undetected_chromedriver::Chrome;
-    use thirtyfour::WebDriver;
+    use std::{error::Error, time::Duration};
+    use thirtyfour::{prelude::ElementQueryable, By, WebDriver};
+    use undetected_chromedriver::ChromeDriver;
 
     #[tokio::test]
-    async fn test_cloudflare() {
-        let driver: WebDriver = Chrome::new().await;
-        driver.bypass_cloudflare("https://nowsecure.nl").await.unwrap();
-        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-        println!("{}", driver.source().await.unwrap());
+    async fn test_cloudflare() -> Result<(), Box<dyn Error>> {
+        let driver: WebDriver = WebDriver::web_driver().await?;
+
+        driver.bypass_cloudflare("https://nowsecure.nl").await?;
+
+        tokio::time::sleep(Duration::from_secs(2)).await;
+
+        println!("{}", driver.source().await?);
         let passed = driver.query(By::XPath("/html/body/div[2]/div/main/p[1]"));
-        assert_eq!(passed.first().await.unwrap().text().await.unwrap(), "you passed!");
-        driver.quit().await.unwrap();
+
+        assert_eq!(passed.first().await?.text().await?, "you passed!");
+
+        driver.quit().await?;
+
+        Ok(())
     }
 }
