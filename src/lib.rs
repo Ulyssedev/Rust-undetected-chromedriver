@@ -2,14 +2,21 @@ use rand::Rng;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::os::unix::fs::PermissionsExt;
 use std::process::Command;
-use thirtyfour::{DesiredCapabilities, WebDriver};
+use thirtyfour::{ChromeCapabilities, DesiredCapabilities, WebDriver};
 use std::error::Error;
 use std::time::Duration;
 use thirtyfour::{prelude::ElementWaitable, By};
 
 /// Fetches a new ChromeDriver executable and patches it to prevent detection.
-/// Returns a WebDriver instance.
+/// Returns a WebDriver instance, constructed with default capabilities.
 pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
+    let caps = DesiredCapabilities::chrome();
+    chrome_caps(caps).await
+}
+
+/// Fetches a new ChromeDriver executable and patches it to prevent detection.
+/// Returns a WebDriver instance.
+pub async fn chrome_caps(mut caps: ChromeCapabilities) -> Result<WebDriver, Box<dyn std::error::Error>> {
     let os = std::env::consts::OS;
     if std::path::Path::new("chromedriver").exists()
         || std::path::Path::new("chromedriver.exe").exists()
@@ -104,7 +111,6 @@ pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
         .arg(format!("--port={}", port))
         .spawn()
         .expect("Failed to start chromedriver!");
-    let mut caps = DesiredCapabilities::chrome();
     caps.set_no_sandbox().unwrap();
     caps.set_disable_dev_shm_usage().unwrap();
     caps.add_chrome_arg("--disable-blink-features=AutomationControlled")
