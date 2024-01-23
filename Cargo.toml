@@ -1,6 +1,6 @@
 [package]
 name = "undetected-chromedriver"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 description = "An undetected implementation of thirtyfour."
 repository = "https://github.com/Ulyssedev/Rust-undetected-chromedriver"
