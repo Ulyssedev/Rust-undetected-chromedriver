@@ -129,7 +129,7 @@ pub async fn chrome() -> Result<WebDriver, Box<dyn std::error::Error>> {
 
 async fn fetch_chromedriver(client: &reqwest::Client) -> Result<(), Box<dyn std::error::Error>> {
     let os = std::env::consts::OS;
-
+    let arch = std::env::consts::ARCH;
     let installed_version = get_chrome_version(os).await?;
     let chromedriver_url: String;
     if installed_version.as_str() >= "114" {
@@ -141,19 +141,22 @@ async fn fetch_chromedriver(client: &reqwest::Client) -> Result<(), Box<dyn std:
         let version = json["milestones"][installed_version]["version"]
             .as_str()
             .unwrap();
-
         // Fetch the chromedriver binary
-        chromedriver_url = match os {
-            "linux" => format!(
-                "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/{}/{}/{}",
+        chromedriver_url = match (os, arch) {
+            ("linux", _) => format!(
+                "https://storage.googleapis.com/chrome-for-testing-public/{}/{}/{}",
                 version, "linux64", "chromedriver-linux64.zip"
             ),
-            "macos" => format!(
-                "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/{}/{}/{}",
+            ("macos", _) => format!(
+                "https://storage.googleapis.com/chrome-for-testing-public/{}/{}/{}",
                 version, "mac-x64", "chromedriver-mac-x64.zip"
             ),
-            "windows" => format!(
-                "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/{}/{}/{}",
+            ("macos", "aarch64") => format!(
+                "https://storage.googleapis.com/chrome-for-testing-public/{}/{}/{}",
+                version, "mac-arm64", "chromedriver-mac-arm64.zip"
+            ),
+            ("windows", _) => format!(
+                "https://storage.googleapis.com/chrome-for-testing-public/{}/{}/{}",
                 version, "win64", "chromedriver-win64.zip"
             ),
             _ => panic!("Unsupported OS!"),
@@ -167,16 +170,17 @@ async fn fetch_chromedriver(client: &reqwest::Client) -> Result<(), Box<dyn std:
             .send()
             .await?;
         let body = resp.text().await?;
-        chromedriver_url = match os {
-            "linux" => format!(
+        chromedriver_url = match (os, arch) {
+            ("linux", _) => format!(
                 "https://chromedriver.storage.googleapis.com/{}/chromedriver_linux64.zip",
                 body
             ),
-            "windows" => format!(
+            ("windows", _) => format!(
                 "https://chromedriver.storage.googleapis.com/{}/chromedriver_win32.zip",
                 body
             ),
-            "macos" => format!(
+            ("macos", "aarch64") => panic!("MacOS on Apple Silicon with < Chrome 114 not supported!"),
+            ("macos", _) => format!(
                 "https://chromedriver.storage.googleapis.com/{}/chromedriver_mac64.zip",
                 body
             ),
